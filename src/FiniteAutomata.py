@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import copy
+from typing import Tuple, Union
 
 import networkx as nx
 import pygraphviz
 from networkx.classes import DiGraph
 
-Transition = dict[str, dict[str, set[str]]]
+State = Union[str, set['State']]
+Transition = dict[State, dict[str, set[State]]]
 
 
 def attrs_to_lists(G: DiGraph, attr: str = "label", delim: str = ",") -> DiGraph:
@@ -17,23 +19,25 @@ def attrs_to_lists(G: DiGraph, attr: str = "label", delim: str = ",") -> DiGraph
 
 
 class FiniteAutomata:
-    def __init__(self, G: DiGraph = None, initial: str = "qi"):
-        self.Q: set[str] = set()
+    def __init__(self, G: DiGraph = None, initial: State = set("qi")):
+        self.Q: set[State] = set()
         self.sigma: set[str] = set()
         self.delta: Transition = {}
-        self.initial: str = initial
-        self.F: set[str] = set()
+        self.initial: State = initial
+        self.F: set[State] = set()
 
         if G:
             attrs_to_lists(G)
             for node in sorted(G.nodes()):
                 self.Q.add(node)
+                self.delta[node] = {}
+
+            for (_, _, labels) in G.edges.data("label", []):
+                for node in self.Q:
+                    for label in labels:
+                        self.delta[node][label] = set()
 
             for (start, end, labels) in G.edges.data("label", []):
-                if not self.delta.get(start):
-                    self.delta[start] = {}
-                if not self.delta.get(end):
-                    self.delta[end] = {}
                 if start == "qi":
                     self.delta[start]["λ"] = set([end])
                 for label in labels:
@@ -93,6 +97,20 @@ class FiniteAutomata:
         gv.write(filename)
         gv.draw("".join(filename.split(".")[:-1]) + ".pdf", prog="dot")
 
+    def delta_star(self, state: State, alpha: str) -> State:
+        if self.delta.get(state) and type(state) is str:
+            if self.delta[state].get(alpha):
+                return self.delta[state][alpha]
+            else:
+                return set()
+        elif self.delta.get(state) and type(state) is set:
+            new_state: State = set()
+            for st in state:
+                pass
+            return new_state
+        else:
+            return set()
+
     def to_dfa(self):
         print(self)
         new = FiniteAutomata()
@@ -104,10 +122,20 @@ class FiniteAutomata:
         added = True
         while added:
             print("Current new FA:\n\t" + str(new).replace("\n", "\n\t"))
-            for node in filter(lambda node: node != new.initial, new.Q):
-                for alpha in new.sigma:
-                    pass
             added = False
+            for node in new.Q.copy():
+                if not new.delta.get(node):
+                    new.delta[node] = {}
+                for alpha in new.sigma:
+                    if not new.delta[node].get(alpha):
+                        new.delta[node][alpha] = set()
+                    if (
+                        # gotta make sure it's there first
+                        self.delta[node].get(alpha)
+                        and tuple(self.delta[node][alpha]) not in new.Q
+                    ):
+                        added = True
+
 
     def mark(self):
         pass
