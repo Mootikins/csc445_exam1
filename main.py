@@ -1,10 +1,8 @@
 import argparse
-from typing import Any, Tuple, Union
 import graphviz
 import networkx as nx
 from networkx.classes.graph import Graph
 from src import FiniteAutomata
-
 
 
 def make_parser() -> argparse.ArgumentParser:
@@ -51,13 +49,15 @@ def main():
 
     G = nx.DiGraph(nx.drawing.nx_agraph.read_dot(args.input_file))
     G = attrs_to_lists(G)
+    fa = FiniteAutomata(G)
 
     if args.action in ["convert", "both"]:
-        G = convert(G)
+        fa = fa.to_nfa()
 
     if args.action in ["minimize", "both"]:
-        G = minimize(G)
+        fa = fa.reduce()
 
+    G = fa.to_graph()
     output_graph(G, args.output_file)
 
 

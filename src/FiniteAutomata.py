@@ -18,10 +18,16 @@ class FiniteAutomata:
     Q: list[str] = []
     sigma: list[str] = []
     delta: Transition = {}
+    initial: str = "qi"
+    F: list[str] = []
 
     def __init__(self, G: Graph = None):
         if not G:
             return self
+
+    def to_graph(self) -> Graph:
+        G = Graph()
+        return G
 
     def to_nfa(self) -> FiniteAutomata:
         prime = FiniteAutomata()
@@ -30,5 +36,6 @@ class FiniteAutomata:
     def mark(self):
         pass
 
-    def reduce():
-        pass
+    def reduce(self) -> FiniteAutomata:
+        prime = FiniteAutomata()
+        return prime
