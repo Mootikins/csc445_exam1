@@ -48,10 +48,8 @@ class FiniteAutomata:
             self_looping = 0
             for alpha in self.delta[node]:
                 if node in self.delta[node][alpha]:
-                    print(node, "is self looping via", alpha)
                     self_looping += 1
             if self_looping == len(self.sigma):
-                print(node, "should be final")
                 self.F.add(node)
 
     def output(self, filename: str = None):
@@ -88,7 +86,7 @@ class FiniteAutomata:
             final.attr["shape"] = "doublecircle"
 
         gv.write(filename)
-        gv.draw(filename.split(".")[0] + ".pdf", prog="dot")
+        gv.draw(''.join(filename.split(".")[:-1]) + ".pdf", prog="dot")
 
     def to_dfa(self):
         pass
