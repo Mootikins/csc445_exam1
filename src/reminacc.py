@@ -10,7 +10,7 @@ for i in sorted(G.nodes()):
     if i != "qi":
         print("qi -> " + i)
         print(nx.has_path(G, "qi", i))
-        if nx.has_path(G, "qi", i) == False:
+        if not nx.has_path(G, "qi", i):
             G.remove_node(i)
 
 nx.drawing.nx_agraph.write_dot(G, "grid.dot")
