@@ -1,9 +1,10 @@
 import argparse
-from typing import Any
+from typing import Any, Tuple, Union
 import graphviz
 import networkx as nx
-from networkx.classes.digraph import DiGraph
 from networkx.classes.graph import Graph
+from src import FiniteAutomata
+
 
 
 def make_parser() -> argparse.ArgumentParser:
@@ -28,17 +29,11 @@ def make_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def attrs_to_lists(G: Graph, attr: str = "label", delim: str = ","):
+def attrs_to_lists(G: Graph, attr: str = "label", delim: str = ",") -> Graph:
     for (start, end, data) in G.edges(data=True):
-        if data.get(attr) is not None:
+        if type(data.get(attr)) is str:
             G[start][end][attr] = data.get(attr).split(delim)
-
-
-def remove_inaccessible(G: Graph, initial: Any = "qi"):
-    for node in sorted(G.nodes()):
-        if node != initial:
-            if not nx.has_path(G, initial, node):
-                G.remove_node(node)
+    return G
 
 
 def output_graph(G: Graph, output: str):
@@ -50,30 +45,18 @@ def output_graph(G: Graph, output: str):
     graphviz.render("dot", "pdf", output)
 
 
-def convert(G: Graph):
-    pass
-
-
-def mark(G: Graph):
-    pass
-
-
-def minimize(G: Graph):
-    remove_inaccessible(G)
-
-
 def main():
     parser = make_parser()
     args = parser.parse_args()
 
     G = nx.DiGraph(nx.drawing.nx_agraph.read_dot(args.input_file))
-    attrs_to_lists(G)
+    G = attrs_to_lists(G)
 
     if args.action in ["convert", "both"]:
-        convert(G)
+        G = convert(G)
 
     if args.action in ["minimize", "both"]:
-        minimize(G)
+        G = minimize(G)
 
     output_graph(G, args.output_file)
 
