@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import Union, Tuple, Any, Set
-import graphviz
-import pygraphviz
+
+import copy
+
 import networkx as nx
+import pygraphviz
 from networkx.classes import DiGraph
 
 Transition = dict[str, dict[str, set[str]]]
@@ -16,13 +17,13 @@ def attrs_to_lists(G: DiGraph, attr: str = "label", delim: str = ",") -> DiGraph
 
 
 class FiniteAutomata:
-    Q: set[str] = set()
-    sigma: set[str] = set()
-    delta: Transition = {}
-    initial: str = "qi"
-    F: set[str] = set()
+    def __init__(self, G: DiGraph = None, initial: str = "qi"):
+        self.Q: set[str] = set()
+        self.sigma: set[str] = set()
+        self.delta: Transition = {}
+        self.initial: str = initial
+        self.F: set[str] = set()
 
-    def __init__(self, G: DiGraph = None):
         if G:
             attrs_to_lists(G)
             for node in sorted(G.nodes()):
@@ -43,6 +44,9 @@ class FiniteAutomata:
 
             self.update_finals()
 
+    def __str__(self):
+        return f"States: {self.Q}\nAlphabet: {self.sigma}\nTransition: {self.delta}\nFinal State: {self.F}\nInitial State: {self.initial}"
+
     def update_finals(self):
         for node in self.Q:
             self_looping = 0
@@ -54,6 +58,7 @@ class FiniteAutomata:
 
     def output(self, filename: str = None):
         G = DiGraph()
+        self.update_finals()
         for label in self.Q:
             G.add_node(label)
 
@@ -86,16 +91,26 @@ class FiniteAutomata:
             final.attr["shape"] = "doublecircle"
 
         gv.write(filename)
-        gv.draw(''.join(filename.split(".")[:-1]) + ".pdf", prog="dot")
+        gv.draw("".join(filename.split(".")[:-1]) + ".pdf", prog="dot")
 
     def to_dfa(self):
-        pass
+        print(self)
+        new = FiniteAutomata()
+        new.Q.add(self.initial)
+        new.Q = new.Q.union(self.delta[self.initial]["λ"])
+        new.sigma = self.sigma
+        new.initial = self.initial
+
+        added = True
+        while added:
+            print("Current new FA:\n\t" + str(new).replace("\n", "\n\t"))
+            for node in filter(lambda node: node != new.initial, new.Q):
+                for alpha in new.sigma:
+                    pass
+            added = False
 
     def mark(self):
         pass
 
     def reduce(self):
         pass
-
-    def __str__(self):
-        return f"States: {self.Q}\nAlphabet: {self.sigma}\nTransition: {self.delta}\nFinal State: {self.F}"
