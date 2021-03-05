@@ -7,7 +7,7 @@ def make_parser() -> argparse.ArgumentParser:
         usage="%(prog)s [options] file",
         description="Convert an NFA to a DFA, minimize a DFA, or both in sequence",
     )
-    parser.add_argument("-d", "--nda-to-dfa", help="convert an NFA to a DFA")
+    parser.add_argument("-c", "--nfa-to-dfa", help="convert an NFA to a DFA")
     parser.add_argument("-m", "--min-dfa", help="minimize a DFA")
     parser.add_argument("file")
     return parser
