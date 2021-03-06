@@ -38,6 +38,7 @@ class FiniteAutomata:
                     for label in labels:
                         self.delta[node][label] = set()
 
+            self.Q.remove(("qi",))
             for (start, end, labels) in G.edges.data("label", []):
                 if start == "qi":
                     self.delta[tuple([start])]["λ"].add(tuple([end]))
@@ -96,14 +97,53 @@ class FiniteAutomata:
         gv.write(filename)
         gv.draw("".join(filename.split(".")[:-1]) + ".pdf", prog="dot")
 
-    def delta_star(self, state: State, alpha: str) -> set[State] | None:
-        pass
+    def delta_star(self, state: State, alpha: str) -> set[str]:
+        new_st: set[str] = set()
+        if self.delta.get(state) and self.delta[state].get(alpha):
+            for inner_st in self.delta[state][alpha]:
+                if type(inner_st) is str:
+                    new_st.add(inner_st)
+                else:
+                    for tup_st in inner_st:
+                        new_st.add(tup_st)
+                if self.delta[inner_st].get("λ"):
+                    for lambda_st in self.delta[inner_st]["λ"]:
+                        new_st = new_st.union(self.delta_star(lambda_st, alpha))
+        if self.delta.get(state) and self.delta[state].get("λ"):
+            for inner_st in self.delta[state]["λ"]:
+                new_st = new_st.union(self.delta_star(inner_st, alpha))
 
+        return new_st
+
+    # I am aware it's not perfect but I have literally zero clue what is wrong
     def to_dfa(self):
-        pass
+        new = FiniteAutomata()
+        new.Q.add(list(self.delta[self.initial]["λ"])[0])
+        new.sigma = self.sigma
+        new.sigma.remove("λ")
+
+        added = True
+        while added:
+            added = False
+            for state in new.Q.copy():
+                if not new.delta.get(state):
+                    new.delta[state] = {}
+                for alpha in new.sigma:
+                    if not new.delta[state].get(alpha):
+                        new_st: State = tuple(self.delta_star(state, alpha))
+                        new.delta[state][alpha] = set([new_st])
+                        new.Q.add(new_st)
+                        added = True
+
+        new.delta[self.initial] = {}
+        new.delta[self.initial]["λ"] = self.delta[self.initial]["λ"]
+        self.delta = new.delta
+        self.update_finals()
 
     def mark(self):
-        pass
+        for state in self.delta.keys():
+            for trans in self.delta[state].keys():
+                pass
 
     def reduce(self):
         pass

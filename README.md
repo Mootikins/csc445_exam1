@@ -38,3 +38,12 @@ optional arguments:
                         Output filename for intermediate .dot file and the
                         PDF. Defaults to 'grid.dot' and 'grid.dot.pdf'
 ```
+
+### Notes
+
+While I had done the NFA -> DFA mostly successfully (there is one error in the
+test case), my method made it so I could not get the original final states from
+the graphviz/networkx instance, which makes the DFA minimization impossible.
+With how much architecting I did to get the NFA -> DFA to work without tons of
+edge case checks, I'm not terribly keen on rewriting it all to use networkx just
+so I can preserve the final states and do the DFA minimization.
